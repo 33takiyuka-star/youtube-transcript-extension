@@ -57,13 +57,40 @@ async function getTranscript() {
     baseUrl: t.baseUrl,
   }));
 
-  return {
+  const result = {
     title: videoTitle,
     language: preferredTrack.languageCode,
     languageName: preferredTrack.name?.simpleText || preferredTrack.languageCode,
     languages,
     segments,
   };
+
+  // 字幕データ取得後、ネイティブ字幕パネルを閉じる
+  closeNativeTranscriptPanel();
+
+  return result;
+}
+
+function closeNativeTranscriptPanel() {
+  // 展開中の ytd-engagement-panel-section-list-renderer をすべて閉じる
+  const panels = document.querySelectorAll(
+    "ytd-engagement-panel-section-list-renderer"
+  );
+
+  panels.forEach((panel) => {
+    if (panel.getAttribute("visibility") !== "ENGAGEMENT_PANEL_VISIBILITY_EXPANDED") {
+      return;
+    }
+
+    // クローズボタンをクリックして正常に閉じる
+    const closeBtn = panel.querySelector("#close-button button");
+    if (closeBtn) {
+      closeBtn.click();
+    } else {
+      // フォールバック: visibility 属性を直接隠す
+      panel.setAttribute("visibility", "ENGAGEMENT_PANEL_VISIBILITY_HIDDEN");
+    }
+  });
 }
 
 function parseTranscriptXml(xmlText) {
